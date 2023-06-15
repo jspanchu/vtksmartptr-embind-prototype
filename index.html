@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<script>
+  var Module = {
+    print: (text) => {
+      console.log(text);
+    },
+    printErr: (text) => {
+      console.log(text);
+    },
+    onRuntimeInitialized: function () {
+      var logRefCounts = (x) => {
+        console.log(`RefCounts JS=${x.$$.count.value},CPP=${x.GetReferenceCount()}`);
+      } 
+      async function myLongRunningProcess(x, milliseconds) {
+        // sleep for the specified number of milliseconds
+        await new Promise(resolve => setTimeout(resolve, milliseconds));
+        logRefCounts(x);
+      }
+
+      const instance = new Module.vtkCustomObject();
+      logRefCounts(instance); // JS=1,CPP=1
+      myLongRunningProcess(instance.clone(), 5000);
+      logRefCounts(instance);// JS=2,CPP=1
+      myLongRunningProcess(instance.clone(), 3000);
+      logRefCounts(instance);// JS=3,CPP=1
+    }
+    // The C++ backing for `instance` will be deleted when instance JS handle gets collected.
+  };
+</script>
+<script src="main.js"></script>
+
+</html>
